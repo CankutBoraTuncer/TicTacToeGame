@@ -5,40 +5,28 @@ import java.util.Scanner;
 
 public class Client2 {
     private Socket clientSocket;
-    private BufferedReader bufferedReader;
-    private BufferedWriter bufferedWriter;
-    private PlayerServer player;
+    private PlayerClient player;
     private GTP gtp;
 
     public static void main(String[] args) throws IOException {
-        Socket clientSocket = new Socket("localhost", 1234);
-        Client1 client1 = new Client1(clientSocket);
-        client1.listenServer();
-        client1.sendMessage();
+        Socket clientSocket = new Socket("localhost", 1235);
+        Client2 client2 = new Client2(clientSocket);
+        client2.listenServer();
+        client2.sendMessage();
     }
 
-//    public Client2(Socket clientSocket) {
-//        try {
-//            this.clientSocket = clientSocket;
-//            this.bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-//            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
-//            this.gtp = new GTP(bufferedWriter, bufferedReader);
-//            this.player = null;
-//        } catch (IOException e) {
-//            closeEverything();
-//        }
-//    }
-
+    public Client2(Socket clientSocket) {
+        this.clientSocket = clientSocket;
+        this.gtp = new GTP(clientSocket);
+        this.player = null;
+    }
 
     public void sendMessage() {
         try {
             Scanner scanner = new Scanner(System.in);
             while(clientSocket.isConnected()){
-                String message = scanner.nextLine();
-                gtp.clearMessage();
-                gtp.addMessage(GTP.MESSAGE_OTHER, message);
-                gtp.sendMessage();
-
+                String play = scanner.nextLine();
+                sendPlayerMove(play);
             }
         } catch (IOException e) {
             closeEverything();
@@ -54,6 +42,14 @@ public class Client2 {
                     try{
                         serverMessage = gtp.getMessage();
                         System.out.println(serverMessage);
+                        String messageType = GTP.getMessageType(serverMessage);
+                        if(messageType.equals(GTP.MESSAGE_TYPE_PLAYER_INIT)){
+                            String id = GTP.getMessageResponse(GTP.MESSAGE_PLAYER_ID, serverMessage);
+                            char symbol = GTP.getMessageResponse(GTP.MESSAGE_SYMBOL, serverMessage).charAt(0);
+                            String name = GTP.getMessageResponse(GTP.MESSAGE_NAME, serverMessage);
+                            player = new PlayerClient(id, symbol, name);
+                            System.out.println(player);
+                        }
                     } catch (IOException e){
                         closeEverything();
                     }
@@ -64,18 +60,20 @@ public class Client2 {
 
     private void closeEverything() {
         try {
-            if (bufferedWriter != null) {
-                bufferedWriter.close();
-            }
-            if (bufferedReader != null) {
-                bufferedReader.close();
-            }
             if (clientSocket != null) {
                 clientSocket.close();
             }
         } catch (IOException e) {
             e.getStackTrace();
         }
+    }
+
+    public void sendPlayerMove(String play) throws IOException {
+        gtp.clearMessage();
+        gtp.addMessage(GTP.MESSAGE_ID, player.getId());
+        gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_PLAYER_MOVE);
+        gtp.addMessage(GTP.MESSAGE_PLAY, play);
+        gtp.sendMessage();
     }
 
 

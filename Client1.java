@@ -25,10 +25,8 @@ public class Client1 {
         try {
             Scanner scanner = new Scanner(System.in);
             while(clientSocket.isConnected()){
-                String message = scanner.nextLine();
-                gtp.clearMessage();
-                gtp.addMessage(GTP.MESSAGE_OTHER, message);
-                gtp.sendMessage();
+                String play = scanner.nextLine();
+                sendPlayerMove(play);
             }
         } catch (IOException e) {
             closeEverything();
@@ -44,7 +42,8 @@ public class Client1 {
                     try{
                         serverMessage = gtp.getMessage();
                         String messageType = GTP.getMessageType(serverMessage);
-                        if(messageType.equals("playerInit")){
+                        System.out.println(serverMessage);
+                        if(messageType.equals(GTP.MESSAGE_TYPE_PLAYER_INIT)){
                             String id = GTP.getMessageResponse(GTP.MESSAGE_PLAYER_ID, serverMessage);
                             char symbol = GTP.getMessageResponse(GTP.MESSAGE_SYMBOL, serverMessage).charAt(0);
                             String name = GTP.getMessageResponse(GTP.MESSAGE_NAME, serverMessage);
@@ -67,6 +66,14 @@ public class Client1 {
         } catch (IOException e) {
             e.getStackTrace();
         }
+    }
+
+    public void sendPlayerMove(String play) throws IOException {
+        gtp.clearMessage();
+        gtp.addMessage(GTP.MESSAGE_ID, player.getId());
+        gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_PLAYER_MOVE);
+        gtp.addMessage(GTP.MESSAGE_PLAY, play);
+        gtp.sendMessage();
     }
 
 

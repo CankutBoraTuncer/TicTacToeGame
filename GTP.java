@@ -3,21 +3,7 @@ import java.net.Socket;
 import java.util.Scanner;
 
 //Game Text Protocol
-public class GTP {
-    public static final String MESSAGE_SYMBOL = "symbol";
-    public static final String MESSAGE_ID = "id";
-    public static final String MESSAGE_PLAYER_ID = "idPlayer";
-    public static final String MESSAGE_OTHER = "other";
-    public static final String MESSAGE_NAME = "name";
-    public static final String MESSAGE_TYPE = "type";
-    public static final String MESSAGE_IS_TURN = "isTurn";
-    public static final String MESSAGE_PLAY = "play";
-    public static final String MESSAGE_GAME = "game";
-    public static final String MESSAGE_IS_VALID_PLAY = "isValidPlay";
-    public static final String MESSAGE_IS_GAME_OVER = "isGameOver";
-    public static final String MESSAGE_GAME_WINNER = "winner";
-    public static final String MESSAGE_BOARD = "board";
-
+public class GTP extends GTPMessages{
     String message;
 
     private Socket socket;
@@ -60,6 +46,10 @@ public class GTP {
 
     public static String getMessageType(String message) {
         String[] messages = message.split("\r\n");
-        return messages[1].split(":")[1];
+        for (String messagePart : messages) {
+            String[] foo = messagePart.split(":");
+            return foo[0];
+        }
+        return null;
     }
 }
