@@ -41,8 +41,9 @@ public class Client2 {
                 while(clientSocket.isConnected()){
                     try{
                         serverMessage = gtp.getMessage();
-                        System.out.println(serverMessage);
                         String messageType = GTP.getMessageType(serverMessage);
+                        System.out.println(serverMessage);
+
                         if(messageType.equals(GTP.MESSAGE_TYPE_PLAYER_INIT)){
                             String id = GTP.getMessageResponse(GTP.MESSAGE_PLAYER_ID, serverMessage);
                             char symbol = GTP.getMessageResponse(GTP.MESSAGE_SYMBOL, serverMessage).charAt(0);

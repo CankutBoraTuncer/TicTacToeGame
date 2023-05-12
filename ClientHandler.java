@@ -39,9 +39,12 @@ public class ClientHandler implements Runnable {
                         String playerMessage = messageHandler.getLastValidMesssage();
                         System.out.println(playerMessage);
                         String messageType = GTP.getMessageType(playerMessage);
+                        System.out.println("MessageType: " + messageType);
                         if (messageType.equals(GTP.MESSAGE_TYPE_PLAYER_MOVE)) {
                             String playerMove = GTP.getMessageResponse(GTP.MESSAGE_PLAY, playerMessage);
+                            System.out.println("Player move " + playerMove);
                             if (game.isValidPlay(playerMove, player)) {
+                                System.out.println("The move is valid!");
                                 game.updateBoard(playerMove, player);
                                 System.out.println(game);
                                 sendAcceptMoveMessage();

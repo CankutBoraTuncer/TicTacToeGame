@@ -48,7 +48,9 @@ public class GTP extends GTPMessages{
         String[] messages = message.split("\r\n");
         for (String messagePart : messages) {
             String[] foo = messagePart.split(":");
-            return foo[0];
+            if(foo[0].equals(GTP.MESSAGE_TYPE)){
+                return foo[1];
+            }
         }
         return null;
     }

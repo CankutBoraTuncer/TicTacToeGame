@@ -11,7 +11,7 @@ public class MessageHandler implements Runnable{
     private ArrayList<String> allClientMessages;
     private ArrayList<String> validClientMessages;
     private int lastMessageIndex = -1;
-    private boolean newValidMessage;
+    private volatile boolean newValidMessage;
 
 
     public MessageHandler(GTP gtp, Socket socket, Game game, PlayerServer player){
@@ -30,9 +30,11 @@ public class MessageHandler implements Runnable{
             try {
                 String newMessage = gtp.getMessage();
                 allClientMessages.add(newMessage);
+                System.out.println(newMessage);
                 lastMessageIndex ++;
-                if(!game.isGameOver() || game.isTurnOfPlayer(player)){
-                   validClientMessages.add(newMessage);
+                if(!game.isGameOver() && game.isTurnOfPlayer(player)){
+                    System.out.println("New valid message for " + player.getName());
+                    validClientMessages.add(newMessage);
                     newValidMessage = true;
                 } else {
                     sendRejectMoveMessage();
