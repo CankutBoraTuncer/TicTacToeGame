@@ -1,43 +1,73 @@
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Client1 {
-    public static void main(String[] args) {
+    private Socket clientSocket;
+    private PlayerClient player;
+    private GTP gtp;
+
+    public static void main(String[] args) throws IOException {
+        Socket clientSocket = new Socket("localhost", 1235);
+        Client1 client1 = new Client1(clientSocket);
+        client1.listenServer();
+        client1.sendMessage();
+    }
+
+    public Client1(Socket clientSocket) {
+        this.clientSocket = clientSocket;
+        this.gtp = new GTP(clientSocket);
+        this.player = null;
+    }
+
+    public void sendMessage() {
         try {
-            Socket clientSocket = new Socket("localhost", 1234);
-            GTP gtp = new GTP(clientSocket);
-            String gameInitMessage = gtp.getMessage();
-            PlayerClient player = new PlayerClient(GTP.getMessageResponse(GTP.MESSAGE_ID, gameInitMessage), GTP.getMessageResponse(GTP.MESSAGE_SYMBOL, gameInitMessage).charAt(0), GTP.getMessageResponse(GTP.MESSAGE_NAME, gameInitMessage));
-            System.out.println(gameInitMessage);
             Scanner scanner = new Scanner(System.in);
-            while (true) {
-                String serverMessage = gtp.getMessage();
-                if(GTP.getMessageResponse(GTP.MESSAGE_IS_GAME_OVER, serverMessage) == null){
-                    if(GTP.getMessageResponse(GTP.MESSAGE_IS_TURN, serverMessage).equals("true")){
-                        String board = GTP.getMessageResponse(GTP.MESSAGE_BOARD, serverMessage);
-                        do{
-                            System.out.println("State of board\n"+board);
-                            System.out.print("Where do you want to play: ");
-                            String play = scanner.nextLine();
-                            sendPlayInfoGTPMessage(gtp, player.getId(), play);
-                            serverMessage = GTP.getMessageResponse(GTP.MESSAGE_IS_VALID_PLAY, gtp.getMessage());
-                        } while(serverMessage.equals("false"));
-                    }
-                } else {
-                    break;
-                }
+            while(clientSocket.isConnected()){
+                String message = scanner.nextLine();
+                gtp.clearMessage();
+                gtp.addMessage(GTP.MESSAGE_OTHER, message);
+                gtp.sendMessage();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            closeEverything();
         }
     }
 
-    public static void sendPlayInfoGTPMessage(GTP gtpMessage, String id, String play) throws IOException {
-        gtpMessage.clearMessage();
-        gtpMessage.addMessage(GTP.MESSAGE_ID, id);
-        gtpMessage.addMessage(GTP.MESSAGE_PLAY, play);
-        gtpMessage.sendMessage();
+    public void listenServer(){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String serverMessage;
+                while(clientSocket.isConnected()){
+                    try{
+                        serverMessage = gtp.getMessage();
+                        String messageType = GTP.getMessageType(serverMessage);
+                        if(messageType.equals("playerInit")){
+                            String id = GTP.getMessageResponse(GTP.MESSAGE_PLAYER_ID, serverMessage);
+                            char symbol = GTP.getMessageResponse(GTP.MESSAGE_SYMBOL, serverMessage).charAt(0);
+                            String name = GTP.getMessageResponse(GTP.MESSAGE_NAME, serverMessage);
+                            player = new PlayerClient(id, symbol, name);
+                            System.out.println(player);
+                        }
+                    } catch (IOException e){
+                        closeEverything();
+                    }
+                }
+            }
+        }).start();
     }
+
+    private void closeEverything() {
+        try {
+            if (clientSocket != null) {
+                clientSocket.close();
+            }
+        } catch (IOException e) {
+            e.getStackTrace();
+        }
+    }
+
 
 }

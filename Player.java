@@ -3,6 +3,8 @@ public class Player {
     String id;
     String name;
 
+
+
     @Override
     public String toString(){
         return "A client is connected, and it is assigned with the symbol " + symbol + " and ID=" + id;

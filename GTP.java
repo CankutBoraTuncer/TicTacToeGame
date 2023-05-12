@@ -1,13 +1,15 @@
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
+import java.util.Scanner;
 
 //Game Text Protocol
 public class GTP {
     public static final String MESSAGE_SYMBOL = "symbol";
     public static final String MESSAGE_ID = "id";
+    public static final String MESSAGE_PLAYER_ID = "idPlayer";
+    public static final String MESSAGE_OTHER = "other";
     public static final String MESSAGE_NAME = "name";
+    public static final String MESSAGE_TYPE = "type";
     public static final String MESSAGE_IS_TURN = "isTurn";
     public static final String MESSAGE_PLAY = "play";
     public static final String MESSAGE_GAME = "game";
@@ -17,10 +19,10 @@ public class GTP {
     public static final String MESSAGE_BOARD = "board";
 
     String message;
-    Socket socket;
+
+    private Socket socket;
 
     public GTP(Socket socket) {
-        this.message = "";
         this.socket = socket;
     }
 
@@ -54,5 +56,10 @@ public class GTP {
             }
         }
         return null;
+    }
+
+    public static String getMessageType(String message) {
+        String[] messages = message.split("\r\n");
+        return messages[1].split(":")[1];
     }
 }

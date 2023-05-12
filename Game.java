@@ -13,12 +13,10 @@ public class Game {
     Player winner;
 
 
-    public Game(Player player1, Player player2) {
+    public Game() {
         this.turnNo = 0;
         this.board = new char[][]{{'_', '_', '_'}, {'_', '_', '_'}, {'_', '_', '_'}};
         this.boardStr = "_|_|_\n_|_|_\n_|_|_";
-        this.player1 = player1;
-        this.player2 = player2;
         this.winner = null;
     }
 
@@ -32,6 +30,14 @@ public class Game {
         } else {
             return player == player2;
         }
+    }
+
+    public void setPlayer1(Player player1) {
+        this.player1 = player1;
+    }
+
+    public void setPlayer2(Player player2) {
+        this.player2 = player2;
     }
 
     public Player idToPlayer(String id){
