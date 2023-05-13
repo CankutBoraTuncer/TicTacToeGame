@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class ClientHandler implements Runnable {
 
-    public static ArrayList<Socket> clientSockets = new ArrayList<>();
+    public static ArrayList<Socket> sockets = new ArrayList<>();
     private Socket clientSocket;
     private PlayerServer player;
     private GTP gtp;
@@ -20,7 +20,7 @@ public class ClientHandler implements Runnable {
         this.game.setPlayer(player);
         this.messageHandler = new MessageHandler(gtp, clientSocket, game, player);
         Thread messageThread = new Thread(messageHandler);
-        clientSockets.add(clientSocket);
+        sockets.add(clientSocket);
         messageThread.start();
 
     }
@@ -36,7 +36,6 @@ public class ClientHandler implements Runnable {
                 while (true) {
                     if (game.isTurnOfPlayer(player)) {
                         System.out.printf("Waiting for %s's move\n", game.whoTurn().getName());
-                        sendTurnInfoToAll();
                         while (!messageHandler.isNewValidMessage()) ;
                         String playerMessage = messageHandler.getLastValidMesssage();
                         String messageType = GTP.getMessageType(playerMessage);
@@ -59,7 +58,6 @@ public class ClientHandler implements Runnable {
                         } else {
                             sendRejectMoveMessage(GTP.MESSAGE_IS_TURN, GTP.NO);
                         }
-
                     }
                 }
             } catch (IOException e) {
@@ -97,9 +95,10 @@ public class ClientHandler implements Runnable {
     }
 
     public void sendTurnInfoToAll() {
-        for (Socket socket : clientSockets) {
+        for (Socket socket : sockets) {
             try {
                 gtp.clearMessage();
+                System.out.println(player.getName());
                 gtp.addMessage(GTP.MESSAGE_ID, "0");
                 gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_TURN_INFO);
                 gtp.addMessage(GTP.MESSAGE_TURN_INFO, game.whoTurn().getName());
@@ -112,13 +111,13 @@ public class ClientHandler implements Runnable {
     }
 
     public void sendGameWinnerToAll() {
-        for (Socket socket : clientSockets) {
+        for (Socket socket : sockets) {
             try {
-                gtp.clearMessage();
-                gtp.addMessage(GTP.MESSAGE_ID, "0");
-                gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_GAME_STATUS);
-                gtp.addMessage(GTP.MESSAGE_GAME_STATUS, game.winner.getName());
-                gtp.sendMessage(socket);
+                    gtp.clearMessage();
+                    gtp.addMessage(GTP.MESSAGE_ID, "0");
+                    gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_GAME_STATUS);
+                    gtp.addMessage(GTP.MESSAGE_GAME_STATUS, game.winner.getName());
+                    gtp.sendMessage(socket);
             } catch (IOException e) {
                 closeEverything();
             }
@@ -126,7 +125,8 @@ public class ClientHandler implements Runnable {
     }
 
     public void removeClientHandler() {
-        clientSockets.remove(clientSocket);
+        System.out.println("Client exited");
+        sockets.remove(clientSocket);
     }
 
     private void closeEverything() {

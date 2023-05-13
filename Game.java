@@ -5,7 +5,7 @@ import java.net.Socket;
 public class Game {
 
     static final int BOARD_SIZE = 3;
-    int turnNo;
+    volatile int turnNo;
     String boardStr;
     char[][] board;
     Player[] players;
