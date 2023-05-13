@@ -22,17 +22,19 @@ public class GameMaster {
                     Socket clientSocket1 = serverSocket.accept();
                     PlayerServer player1 = new PlayerServer(clientSocket1, 'X', "player1");
                     ClientHandler clientHandler1 = new ClientHandler(clientSocket1, player1, game);
-                    System.out.println("Player 1 joined");
+                    System.out.printf("A client is connected, and it is assigned with the symbol %c and ID=%s\n", player1.getSymbol(), player1.getId());
                     playerCount++;
                     Socket clientSocket2 = serverSocket.accept();
                     PlayerServer player2 = new PlayerServer(clientSocket2, '0', "player2");
                     ClientHandler clientHandler2 = new ClientHandler(clientSocket2, player2, game);
                     playerCount++;
-                    System.out.println("Player 2 joined");
+                    System.out.printf("A client is connected, and it is assigned with the symbol %c and ID=%s\n", player2.getSymbol(), player2.getId());
+                    System.out.println("The game is started.");
                     Thread t1 = new Thread(clientHandler1);
                     t1.start();
                     Thread t2 = new Thread(clientHandler2);
                     t2.start();
+
                 }
             }
         } catch (IOException e) {

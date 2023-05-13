@@ -30,10 +30,8 @@ public class MessageHandler implements Runnable{
             try {
                 String newMessage = gtp.getMessage();
                 allClientMessages.add(newMessage);
-                System.out.println(newMessage);
                 lastMessageIndex ++;
                 if(!game.isGameOver() && game.isTurnOfPlayer(player)){
-                    System.out.println("New valid message for " + player.getName());
                     validClientMessages.add(newMessage);
                     newValidMessage = true;
                 } else {

@@ -61,14 +61,18 @@ public class Game {
     public boolean isValidPlay(String play, Player player) {
         int r = play.charAt(0) - '0';
         int c = play.charAt(2) - '0';
-        if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE || board[r][c] != '_') {
-            System.out.printf("Received %c on (%d,%d). It is a illegal move.\n", player.getSymbol(), r, c);
-            return false;
+        if (r <= BOARD_SIZE && c <= BOARD_SIZE) {
+            if(board[r][c] == '_'){
+                System.out.printf("Received %c on (%d,%d). It is a legal move.\n", player.getSymbol(), r, c);
+                return true;
+            } else {
+                System.out.printf("Received %c on (%d,%d). It is a illegal move. (The cell is not empty)\n", player.getSymbol(), r, c);
+                return false;
+            }
         } else {
-            System.out.printf("Received %c on (%d,%d). It is a legal move.\n", player.getSymbol(), r, c);
-            return true;
+            System.out.printf("Received %c on (%d,%d). It is a illegal move. (The move is out of board)\n", player.getSymbol(), r, c);
+            return false;
         }
-
     }
 
     public void updateBoard(String play, Player player) {

@@ -22,6 +22,7 @@ public class ClientHandler implements Runnable {
         Thread messageThread = new Thread(messageHandler);
         clientHandlers.add(this);
         messageThread.start();
+
     }
 
     @Override
@@ -29,27 +30,23 @@ public class ClientHandler implements Runnable {
         while (clientSocket.isConnected()) {
             try {
                 if (game.getCurrentPlayerCount() == 2) {
+
                     sendPlayerData();
                     sendBroadcast("Turn of " + game.whoTurn().getName());
                 }
                 while (!game.isGameOver()) {
                     if (game.isTurnOfPlayer(player)) {
+                        System.out.printf("Waiting for %s's move\n", game.whoTurn().getName());
                         sendInGameGTPMessage();
                         while (!messageHandler.isNewValidMessage()) ;
                         String playerMessage = messageHandler.getLastValidMesssage();
-                        System.out.println(playerMessage);
                         String messageType = GTP.getMessageType(playerMessage);
-                        System.out.println("MessageType: " + messageType);
                         if (messageType.equals(GTP.MESSAGE_TYPE_PLAYER_MOVE)) {
                             String playerMove = GTP.getMessageResponse(GTP.MESSAGE_PLAY, playerMessage);
-                            System.out.println("Player move " + playerMove);
                             if (game.isValidPlay(playerMove, player)) {
-                                System.out.println("The move is valid!");
                                 game.updateBoard(playerMove, player);
-                                System.out.println(game);
                                 sendAcceptMoveMessage();
                                 game.nextTurn();
-                                sendBroadcast("Turn of " + game.whoTurn().getName());
                             } else {
                                 sendRejectMoveMessage(GTP.MESSAGE_IS_VALID_PLAY, GTP.NO);
                             }
@@ -60,7 +57,7 @@ public class ClientHandler implements Runnable {
                     }
                 }
                 sendBroadcast("Game is over");
-
+                return;
             } catch (IOException e) {
                 closeEverything();
                 break;
@@ -103,7 +100,6 @@ public class ClientHandler implements Runnable {
         gtp.addMessage(GTP.MESSAGE_BOARD, game.toString());
         gtp.sendMessage();
     }
-
 
     public void sendBroadcast(String s) {
         for (ClientHandler clientHandler : clientHandlers) {
