@@ -34,7 +34,6 @@ public class GameMaster {
                     t1.start();
                     Thread t2 = new Thread(clientHandler2);
                     t2.start();
-
                 }
             }
         } catch (IOException e) {

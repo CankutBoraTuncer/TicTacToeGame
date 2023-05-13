@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class ClientHandler implements Runnable {
 
-    public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+    public static ArrayList<Socket> clientSockets = new ArrayList<>();
     private Socket clientSocket;
     private PlayerServer player;
     private GTP gtp;
@@ -20,7 +20,7 @@ public class ClientHandler implements Runnable {
         this.game.setPlayer(player);
         this.messageHandler = new MessageHandler(gtp, clientSocket, game, player);
         Thread messageThread = new Thread(messageHandler);
-        clientHandlers.add(this);
+        clientSockets.add(clientSocket);
         messageThread.start();
 
     }
@@ -30,14 +30,13 @@ public class ClientHandler implements Runnable {
         while (clientSocket.isConnected()) {
             try {
                 if (game.getCurrentPlayerCount() == 2) {
-
                     sendPlayerData();
-                    sendBroadcast("Turn of " + game.whoTurn().getName());
+                    sendTurnInfoToAll();
                 }
-                while (!game.isGameOver()) {
+                while (true) {
                     if (game.isTurnOfPlayer(player)) {
                         System.out.printf("Waiting for %s's move\n", game.whoTurn().getName());
-                        sendInGameGTPMessage();
+                        sendTurnInfoToAll();
                         while (!messageHandler.isNewValidMessage()) ;
                         String playerMessage = messageHandler.getLastValidMesssage();
                         String messageType = GTP.getMessageType(playerMessage);
@@ -47,6 +46,13 @@ public class ClientHandler implements Runnable {
                                 game.updateBoard(playerMove, player);
                                 sendAcceptMoveMessage();
                                 game.nextTurn();
+                                if (!game.isGameOver()) {
+                                    sendTurnInfoToAll();
+                                } else {
+                                    System.out.println("Game Over");
+                                    sendGameWinnerToAll();
+                                    return;
+                                }
                             } else {
                                 sendRejectMoveMessage(GTP.MESSAGE_IS_VALID_PLAY, GTP.NO);
                             }
@@ -56,8 +62,6 @@ public class ClientHandler implements Runnable {
 
                     }
                 }
-                sendBroadcast("Game is over");
-                return;
             } catch (IOException e) {
                 closeEverything();
                 break;
@@ -92,25 +96,29 @@ public class ClientHandler implements Runnable {
         gtp.sendMessage();
     }
 
-    public void sendInGameGTPMessage() throws IOException {
-        gtp.clearMessage();
-        gtp.addMessage(GTP.MESSAGE_ID, "0");
-        gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_MOVE_REQUEST);
-        gtp.addMessage(GTP.MESSAGE_IS_TURN, GTP.YES);
-        gtp.addMessage(GTP.MESSAGE_BOARD, game.toString());
-        gtp.sendMessage();
+    public void sendTurnInfoToAll() {
+        for (Socket socket : clientSockets) {
+            try {
+                gtp.clearMessage();
+                gtp.addMessage(GTP.MESSAGE_ID, "0");
+                gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_TURN_INFO);
+                gtp.addMessage(GTP.MESSAGE_TURN_INFO, game.whoTurn().getName());
+                gtp.addMessage(GTP.MESSAGE_BOARD, game.toString());
+                gtp.sendMessage(socket);
+            } catch (IOException e) {
+                closeEverything();
+            }
+        }
     }
 
-    public void sendBroadcast(String s) {
-        for (ClientHandler clientHandler : clientHandlers) {
+    public void sendGameWinnerToAll() {
+        for (Socket socket : clientSockets) {
             try {
-                if (clientHandler != this) {
-                    gtp.clearMessage();
-                    gtp.addMessage(GTP.MESSAGE_ID, "0");
-                    gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_BROADCAST);
-                    gtp.addMessage(GTP.MESSAGE_OTHER, s);
-                    gtp.sendMessage();
-                }
+                gtp.clearMessage();
+                gtp.addMessage(GTP.MESSAGE_ID, "0");
+                gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_GAME_STATUS);
+                gtp.addMessage(GTP.MESSAGE_GAME_STATUS, game.winner.getName());
+                gtp.sendMessage(socket);
             } catch (IOException e) {
                 closeEverything();
             }
@@ -118,8 +126,7 @@ public class ClientHandler implements Runnable {
     }
 
     public void removeClientHandler() {
-        clientHandlers.remove(this);
-        sendBroadcast("The player1 is left the server...");
+        clientSockets.remove(clientSocket);
     }
 
     private void closeEverything() {

@@ -10,6 +10,7 @@ public class Client1 {
 
     public static void main(String[] args) throws IOException {
         Socket clientSocket = new Socket("localhost", 1235);
+        System.out.println("Connected to the server.");
         Client1 client1 = new Client1(clientSocket);
         client1.listenServer();
         client1.sendMessage();
@@ -26,6 +27,7 @@ public class Client1 {
             Scanner scanner = new Scanner(System.in);
             while(clientSocket.isConnected()){
                 String play = scanner.nextLine();
+                play = play.trim();
                 sendPlayerMove(play);
             }
         } catch (IOException e) {
@@ -42,14 +44,33 @@ public class Client1 {
                     try{
                         serverMessage = gtp.getMessage();
                         String messageType = GTP.getMessageType(serverMessage);
-                        System.out.println(serverMessage);
-
                         if(messageType.equals(GTP.MESSAGE_TYPE_PLAYER_INIT)){
                             String id = GTP.getMessageResponse(GTP.MESSAGE_PLAYER_ID, serverMessage);
                             char symbol = GTP.getMessageResponse(GTP.MESSAGE_SYMBOL, serverMessage).charAt(0);
                             String name = GTP.getMessageResponse(GTP.MESSAGE_NAME, serverMessage);
                             player = new PlayerClient(id, symbol, name);
-                            System.out.println(player);
+                            System.out.printf("Retrieved symbol %c and ID=%s\n", symbol, id);
+                        } else if(messageType.equals(GTP.MESSAGE_TYPE_TURN_INFO)){
+                            String playerName = GTP.getMessageResponse(GTP.MESSAGE_TURN_INFO, serverMessage);
+                            if(playerName.equals(player.getName())){
+                                System.out.println("Turn information: Your turn!");
+                                String board = GTP.getMessageResponse(GTP.MESSAGE_BOARD, serverMessage);
+                                System.out.println("State of board\n" + board);
+                                System.out.printf("Put %c to: ", player.getSymbol());
+                            } else {
+                                System.out.printf("Turn information: %s's turn!\n",playerName);
+                                String board = GTP.getMessageResponse(GTP.MESSAGE_BOARD, serverMessage);
+                                System.out.println("State of board\n" + board);
+                            }
+                        } else if(messageType.equals(GTP.MESSAGE_TYPE_PLAYER_MOVE_RESPONSE)){
+                            boolean isValidPlay = Boolean.parseBoolean(GTP.getMessageResponse(GTP.MESSAGE_IS_VALID_PLAY, serverMessage));
+                            if(!isValidPlay){
+                                System.out.println("Server says: \"This is an illegal move. Please change your move!\"");
+                            }
+                        } else if(messageType.equals(GTP.MESSAGE_TYPE_GAME_STATUS)){
+                            String winner = GTP.getMessageResponse(GTP.MESSAGE_GAME_STATUS, serverMessage);
+                            System.out.println("The winner is " + winner);
+                            return;
                         }
                     } catch (IOException e){
                         closeEverything();

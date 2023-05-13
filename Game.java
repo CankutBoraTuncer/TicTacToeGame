@@ -16,7 +16,7 @@ public class Game {
     public Game() {
         this.turnNo = 0;
         this.board = new char[][]{{'_', '_', '_'}, {'_', '_', '_'}, {'_', '_', '_'}};
-        this.boardStr = "_|_|_\n_|_|_\n_|_|_";
+        this.boardStr = boardToString(board);
         this.winner = null;
         this.currentPlayerCount = 0;
         this.players = new Player[2];
@@ -34,7 +34,7 @@ public class Game {
         }
     }
 
-    public Player whoTurn(){
+    public Player whoTurn() {
         if (turnNo % 2 == 0) {
             return players[0];
         } else {
@@ -48,10 +48,10 @@ public class Game {
     }
 
 
-    public Player idToPlayer(String id){
-        if(players[0].getId().equals(id)){
+    public Player idToPlayer(String id) {
+        if (players[0].getId().equals(id)) {
             return players[0];
-        } else if(players[1].getId().equals(id)){
+        } else if (players[1].getId().equals(id)) {
             return players[1];
         } else {
             return null;
@@ -61,31 +61,32 @@ public class Game {
     public boolean isValidPlay(String play, Player player) {
         int r = play.charAt(0) - '0';
         int c = play.charAt(2) - '0';
-        if (r <= BOARD_SIZE && c <= BOARD_SIZE) {
-            if(board[r][c] == '_'){
-                System.out.printf("Received %c on (%d,%d). It is a legal move.\n", player.getSymbol(), r, c);
-                return true;
-            } else {
-                System.out.printf("Received %c on (%d,%d). It is a illegal move. (The cell is not empty)\n", player.getSymbol(), r, c);
-                return false;
-            }
+        if (r >= 0 && r <= BOARD_SIZE && c >= 0 && c <= BOARD_SIZE && board[r][c] == '_') {
+            System.out.printf("Received %c on (%d,%d). It is a legal move.\n", player.getSymbol(), r, c);
+            return true;
         } else {
-            System.out.printf("Received %c on (%d,%d). It is a illegal move. (The move is out of board)\n", player.getSymbol(), r, c);
+            System.out.printf("Received %c on (%d,%d). It is a illegal move.\n", player.getSymbol(), r, c);
             return false;
         }
+
     }
 
     public void updateBoard(String play, Player player) {
         int r = play.charAt(0) - '0';
         int c = play.charAt(2) - '0';
         board[r][c] = player.getSymbol();
-        boardStr = "\n";
+        boardStr = boardToString(board);
+    }
+
+    private static String boardToString(char[][] board){
+        String boardStrNew = "\n";
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
-                boardStr += "|" + board[i][j];
+                boardStrNew += "|" + board[i][j];
             }
-            boardStr += "|\n";
+            boardStrNew += "|\n";
         }
+        return boardStrNew;
     }
 
     public boolean isGameOver() {
