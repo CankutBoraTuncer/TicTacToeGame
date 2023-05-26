@@ -5,7 +5,6 @@ import java.util.Scanner;
 //Game Text Protocol
 public class GTP extends GTPMessages{
     String message;
-
     private Socket socket;
 
     public GTP(Socket socket) {

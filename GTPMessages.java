@@ -17,4 +17,6 @@ public class GTPMessages {
     public static final String MESSAGE_TYPE_PLAYER_MOVE_RESPONSE = "typePlayerMoveResponse";
     public static final String MESSAGE_TYPE_TURN_INFO = "typeTurnInfo";
     public static final String MESSAGE_TYPE_GAME_STATUS = "typeGameStatus";
+    public static final String MESSAGE_TYPE_BOARD_INFO_REQUEST = "boardInfoRequest";
+    public static final String MESSAGE_TYPE_TURN_INFO_REQUEST = "turnInfoRequest";
 }

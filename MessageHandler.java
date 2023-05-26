@@ -2,7 +2,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 
-public class MessageHandler implements Runnable{
+public class MessageHandler implements Runnable {
 
     private GTP gtp;
     private Socket socket;
@@ -14,7 +14,7 @@ public class MessageHandler implements Runnable{
     private volatile boolean newValidMessage;
 
 
-    public MessageHandler(GTP gtp, Socket socket, Game game, Player player){
+    public MessageHandler(GTP gtp, Socket socket, Game game, Player player) {
         this.gtp = gtp;
         this.socket = socket;
         this.game = game;
@@ -26,12 +26,17 @@ public class MessageHandler implements Runnable{
 
     @Override
     public void run() {
-        while(socket.isConnected()){
+        while (socket.isConnected()) {
             try {
                 String newMessage = gtp.getMessage();
                 allClientMessages.add(newMessage);
-                lastMessageIndex ++;
-                if(!game.isGameOver() && game.isTurnOfPlayer(player)){
+                lastMessageIndex++;
+                String messageType = GTP.getMessageType(newMessage);
+                if (messageType.equals(GTP.MESSAGE_TYPE_TURN_INFO_REQUEST)) {
+                    sendTurnInfo();
+                } else if (messageType.equals(GTP.MESSAGE_TYPE_BOARD_INFO_REQUEST)) {
+                    sendBoardInfo();
+                } else if (!game.isGameOver() && game.isTurnOfPlayer(player)) {
                     validClientMessages.add(newMessage);
                     newValidMessage = true;
                 } else {
@@ -61,12 +66,12 @@ public class MessageHandler implements Runnable{
         validClientMessages.clear();
     }
 
-    public String getLastValidMesssage(){
+    public String getLastValidMesssage() {
         newValidMessage = false;
-        return validClientMessages.get(validClientMessages.size()-1);
+        return validClientMessages.get(validClientMessages.size() - 1);
     }
 
-    public boolean isNewValidMessage(){
+    public boolean isNewValidMessage() {
         return newValidMessage;
     }
 
@@ -74,6 +79,22 @@ public class MessageHandler implements Runnable{
         gtp.clearMessage();
         gtp.addMessage(GTP.MESSAGE_TYPE, "moveReject");
         gtp.addMessage(GTP.MESSAGE_IS_VALID_PLAY, "false");
+        gtp.sendMessage();
+    }
+
+    public void sendTurnInfo() throws IOException {
+        gtp.clearMessage();
+        gtp.addMessage(GTP.MESSAGE_ID, "0");
+        gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_TURN_INFO_REQUEST);
+        gtp.addMessage(GTP.MESSAGE_TURN_INFO, game.whoTurn().getName());
+        gtp.sendMessage();
+    }
+
+    public void sendBoardInfo() throws IOException {
+        gtp.clearMessage();
+        gtp.addMessage(GTP.MESSAGE_ID, "0");
+        gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_BOARD_INFO_REQUEST);
+        gtp.addMessage(GTP.MESSAGE_BOARD, game.toString());
         gtp.sendMessage();
     }
 }
