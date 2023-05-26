@@ -7,9 +7,10 @@ public class TicTacToeClient1 {
     private Player player;
     private GTP gtp;
     boolean isTurn;
+    boolean isFirstMessage;
 
     public static void main(String[] args) throws IOException {
-        int PORT = Integer.parseInt(args[0]);
+        int PORT = 1235;//Integer.parseInt(args[0]);
         Socket clientSocket = new Socket("localhost", PORT);
         System.out.println("Connected to the server.");
         TicTacToeClient1 ticTacToeClient1 = new TicTacToeClient1(clientSocket);
@@ -22,6 +23,7 @@ public class TicTacToeClient1 {
         this.gtp = new GTP(clientSocket);
         this.player = null;
         isTurn = false;
+        isFirstMessage = true;
     }
 
     public void sendMessage() {
@@ -34,8 +36,7 @@ public class TicTacToeClient1 {
                     sendBoardInfoRequest();
                 } else if (play.equals("turnInfo")) {
                     sendTurnInfoRequest();
-                }
-                else {
+                } else {
                     sendPlayerMove(play);
                 }
 
@@ -53,41 +54,45 @@ public class TicTacToeClient1 {
                 while (clientSocket.isConnected()) {
                     try {
                         serverMessage = gtp.getMessage();
-                        String messageType = GTP.getMessageType(serverMessage);
-                        if (messageType.equals(GTP.MESSAGE_TYPE_PLAYER_INIT)) {
-                            String id = GTP.getMessageResponse(GTP.MESSAGE_PLAYER_ID, serverMessage);
-                            char symbol = GTP.getMessageResponse(GTP.MESSAGE_SYMBOL, serverMessage).charAt(0);
-                            String name = GTP.getMessageResponse(GTP.MESSAGE_NAME, serverMessage);
-                            player = new Player(id, symbol, name);
-                            System.out.printf("Retrieved symbol %c and ID=%s\n", symbol, id);
-                        } else if (messageType.equals(GTP.MESSAGE_TYPE_TURN_INFO)) {
-                            printTurnInfo(serverMessage);
-                            printBoardInfo(serverMessage);
-                        } else if (messageType.equals(GTP.MESSAGE_TYPE_PLAYER_MOVE_RESPONSE)) {
-                            boolean isValidPlay = Boolean.parseBoolean(GTP.getMessageResponse(GTP.MESSAGE_IS_VALID_PLAY, serverMessage));
-                            if (!isValidPlay) {
-                                System.out.println("Server says: \"This is an illegal move. Please change your move!\"");
-                                if(isTurn){
+                        String senderID = GTP.getMessageResponse(GTP.SENDER_ID, serverMessage);
+                        String receiverID = GTP.getMessageResponse(GTP.RECEIVER_ID, serverMessage);
+                        if (isFirstMessage || (receiverID.equals(player.getId()) && senderID.equals("0"))) {
+                            String messageType = GTP.getMessageType(serverMessage);
+                            if (messageType.equals(GTP.MESSAGE_TYPE_PLAYER_INIT)) {
+                                isFirstMessage = false;
+                                String id = GTP.getMessageResponse(GTP.MESSAGE_PLAYER_ID, serverMessage);
+                                char symbol = GTP.getMessageResponse(GTP.MESSAGE_SYMBOL, serverMessage).charAt(0);
+                                String name = GTP.getMessageResponse(GTP.MESSAGE_NAME, serverMessage);
+                                player = new Player(id, symbol, name);
+                                System.out.printf("Retrieved symbol %c and ID=%s\n", symbol, id);
+                            } else if (messageType.equals(GTP.MESSAGE_TYPE_TURN_INFO)) {
+                                printTurnInfo(serverMessage);
+                                printBoardInfo(serverMessage);
+                            } else if (messageType.equals(GTP.MESSAGE_TYPE_PLAYER_MOVE_RESPONSE)) {
+                                boolean isValidPlay = Boolean.parseBoolean(GTP.getMessageResponse(GTP.MESSAGE_IS_VALID_PLAY, serverMessage));
+                                if (!isValidPlay) {
+                                    System.out.println("Server says: \"This is an illegal move. Please change your move!\"");
+                                    if (isTurn) {
+                                        System.out.printf("Put %c to: ", player.getSymbol());
+                                    }
+                                }
+                            } else if (messageType.equals(GTP.MESSAGE_TYPE_TURN_INFO_REQUEST)) {
+                                printTurnInfo(serverMessage);
+                                if (isTurn) {
                                     System.out.printf("Put %c to: ", player.getSymbol());
                                 }
-                            }
-                        } else if (messageType.equals(GTP.MESSAGE_TYPE_TURN_INFO_REQUEST)) {
-                            printTurnInfo(serverMessage);
-                            if (isTurn) {
-                                System.out.printf("Put %c to: ", player.getSymbol());
-                            }
-                        } else if (messageType.equals(GTP.MESSAGE_TYPE_BOARD_INFO_REQUEST)) {
-                            printBoardInfo(serverMessage);
+                            } else if (messageType.equals(GTP.MESSAGE_TYPE_BOARD_INFO_REQUEST)) {
+                                printBoardInfo(serverMessage);
 
-                        } else if (messageType.equals(GTP.MESSAGE_TYPE_GAME_STATUS)) {
-                            String winner = GTP.getMessageResponse(GTP.MESSAGE_GAME_STATUS, serverMessage);
-                            if(winner.equals("tie")){
-                                System.out.println("The game is ended with a tie");
-                            } else {
-                                System.out.println("The winner is " + winner);
+                            } else if (messageType.equals(GTP.MESSAGE_TYPE_GAME_STATUS)) {
+                                String winner = GTP.getMessageResponse(GTP.MESSAGE_GAME_STATUS, serverMessage);
+                                if (winner.equals("tie")) {
+                                    System.out.println("The game is ended with a tie");
+                                } else {
+                                    System.out.println("The winner is " + winner);
+                                }
+                                return;
                             }
-
-                            return;
                         }
                     } catch (IOException e) {
                         closeEverything();
@@ -130,7 +135,8 @@ public class TicTacToeClient1 {
 
     public void sendPlayerMove(String play) throws IOException {
         gtp.clearMessage();
-        gtp.addMessage(GTP.MESSAGE_ID, player.getId());
+        gtp.addMessage(GTP.SENDER_ID, player.getId());
+        gtp.addMessage(GTP.RECEIVER_ID, "0");
         gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_PLAYER_MOVE);
         gtp.addMessage(GTP.MESSAGE_PLAY, play);
         gtp.sendMessage();
@@ -138,14 +144,16 @@ public class TicTacToeClient1 {
 
     public void sendBoardInfoRequest() throws IOException {
         gtp.clearMessage();
-        gtp.addMessage(GTP.MESSAGE_ID, player.getId());
+        gtp.addMessage(GTP.SENDER_ID, player.getId());
+        gtp.addMessage(GTP.RECEIVER_ID, "0");
         gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_BOARD_INFO_REQUEST);
         gtp.sendMessage();
     }
 
     public void sendTurnInfoRequest() throws IOException {
         gtp.clearMessage();
-        gtp.addMessage(GTP.MESSAGE_ID, player.getId());
+        gtp.addMessage(GTP.SENDER_ID, player.getId());
+        gtp.addMessage(GTP.RECEIVER_ID, "0");
         gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_TURN_INFO_REQUEST);
         gtp.sendMessage();
     }

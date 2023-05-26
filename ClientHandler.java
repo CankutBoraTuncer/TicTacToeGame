@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class ClientHandler implements Runnable {
 
     public static ArrayList<Socket> sockets = new ArrayList<>();
+    public static ArrayList<Player> players = new ArrayList<>();
     private Socket clientSocket;
     private Player player;
     private GTP gtp;
@@ -21,6 +22,7 @@ public class ClientHandler implements Runnable {
         this.messageHandler = new MessageHandler(gtp, clientSocket, game, player);
         Thread messageThread = new Thread(messageHandler);
         sockets.add(clientSocket);
+        players.add(player);
         messageThread.start();
 
     }
@@ -31,7 +33,7 @@ public class ClientHandler implements Runnable {
             try {
                 if (game.getCurrentPlayerCount() == 2) {
                     sendPlayerData();
-                    sendTurnInfoToAll();
+                        sendTurnInfoToAll();
                 }
                 while (true) {
                     if (game.isTurnOfPlayer(player)) {
@@ -70,7 +72,8 @@ public class ClientHandler implements Runnable {
 
     public void sendPlayerData() throws IOException {
         gtp.clearMessage();
-        gtp.addMessage(GTP.MESSAGE_ID, "0");
+        gtp.addMessage(GTP.SENDER_ID, "0");
+        gtp.addMessage(GTP.RECEIVER_ID, player.getId());
         gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_PLAYER_INIT);
         gtp.addMessage(GTP.MESSAGE_PLAYER_ID, player.getId());
         gtp.addMessage(GTP.MESSAGE_SYMBOL, String.valueOf(player.getSymbol()));
@@ -80,7 +83,8 @@ public class ClientHandler implements Runnable {
 
     public void sendRejectMoveMessage(String reason, String desc) throws IOException {
         gtp.clearMessage();
-        gtp.addMessage(GTP.MESSAGE_ID, "0");
+        gtp.addMessage(GTP.SENDER_ID, "0");
+        gtp.addMessage(GTP.RECEIVER_ID, player.getId());
         gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_PLAYER_MOVE_RESPONSE);
         gtp.addMessage(GTP.MESSAGE_IS_VALID_PLAY, GTP.NO);
         gtp.addMessage(reason, desc);
@@ -89,21 +93,23 @@ public class ClientHandler implements Runnable {
 
     public void sendAcceptMoveMessage() throws IOException {
         gtp.clearMessage();
-        gtp.addMessage(GTP.MESSAGE_ID, "0");
+        gtp.addMessage(GTP.SENDER_ID, "0");
+        gtp.addMessage(GTP.RECEIVER_ID, player.getId());
         gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_PLAYER_MOVE_RESPONSE);
         gtp.addMessage(GTP.MESSAGE_IS_VALID_PLAY, GTP.YES);
         gtp.sendMessage();
     }
 
     public void sendTurnInfoToAll() {
-        for (Socket socket : sockets) {
+        for (int i = 0; i < sockets.size(); i++) {
             try {
                 gtp.clearMessage();
-                gtp.addMessage(GTP.MESSAGE_ID, "0");
+                gtp.addMessage(GTP.SENDER_ID, "0");
+                gtp.addMessage(GTP.RECEIVER_ID, players.get(i).getId());
                 gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_TURN_INFO);
                 gtp.addMessage(GTP.MESSAGE_TURN_INFO, game.whoTurn().getName());
                 gtp.addMessage(GTP.MESSAGE_BOARD, game.toString());
-                gtp.sendMessage(socket);
+                gtp.sendMessage(sockets.get(i));
             } catch (IOException e) {
                 closeEverything();
             }
@@ -113,11 +119,12 @@ public class ClientHandler implements Runnable {
     public void sendGameWinnerToAll(String winner) {
         for (Socket socket : sockets) {
             try {
-                    gtp.clearMessage();
-                    gtp.addMessage(GTP.MESSAGE_ID, "0");
-                    gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_GAME_STATUS);
-                    gtp.addMessage(GTP.MESSAGE_GAME_STATUS, winner);
-                    gtp.sendMessage(socket);
+                gtp.clearMessage();
+                gtp.addMessage(GTP.SENDER_ID, "0");
+                gtp.addMessage(GTP.RECEIVER_ID, player.getId());
+                gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_GAME_STATUS);
+                gtp.addMessage(GTP.MESSAGE_GAME_STATUS, winner);
+                gtp.sendMessage(socket);
             } catch (IOException e) {
                 closeEverything();
             }

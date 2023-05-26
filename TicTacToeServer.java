@@ -52,7 +52,7 @@ public class TicTacToeServer {
     }
 
     public static void main(String[] args) throws IOException {
-        int PORT = Integer.parseInt(args[0]);
+        int PORT = 1235;//Integer.parseInt(args[0]);
         ServerSocket serverSocket = new ServerSocket(PORT);
         TicTacToeServer ticTacToeServer = new TicTacToeServer(serverSocket);
         ticTacToeServer.initServer();

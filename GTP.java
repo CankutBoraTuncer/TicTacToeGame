@@ -27,8 +27,6 @@ public class GTP extends GTPMessages{
         outputStream.write(messageBytes);
     }
 
-
-
     public String getMessage() throws IOException {
         InputStream inputStream = socket.getInputStream();
         byte[] buffer = new byte[1024];

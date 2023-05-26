@@ -1,6 +1,7 @@
 public class GTPMessages {
     public static final String MESSAGE_SYMBOL = "symbol";
-    public static final String MESSAGE_ID = "id";
+    public static final String SENDER_ID = "senderId";
+    public static final String RECEIVER_ID = "receiverId";
     public static final String MESSAGE_PLAYER_ID = "idPlayer";
     public static final String MESSAGE_NAME = "name";
     public static final String MESSAGE_TYPE = "type";

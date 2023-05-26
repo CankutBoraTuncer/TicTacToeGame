@@ -29,18 +29,22 @@ public class MessageHandler implements Runnable {
         while (socket.isConnected()) {
             try {
                 String newMessage = gtp.getMessage();
-                allClientMessages.add(newMessage);
-                lastMessageIndex++;
-                String messageType = GTP.getMessageType(newMessage);
-                if (messageType.equals(GTP.MESSAGE_TYPE_TURN_INFO_REQUEST)) {
-                    sendTurnInfo();
-                } else if (messageType.equals(GTP.MESSAGE_TYPE_BOARD_INFO_REQUEST)) {
-                    sendBoardInfo();
-                } else if (game.isGameOver() == null && game.isTurnOfPlayer(player)) {
-                    validClientMessages.add(newMessage);
-                    newValidMessage = true;
-                } else {
-                    sendRejectMoveMessage(GTP.MESSAGE_IS_TURN, GTP.NO);
+                String senderID = GTP.getMessageResponse(GTP.SENDER_ID, newMessage);
+                String receiverID = GTP.getMessageResponse(GTP.RECEIVER_ID, newMessage);
+                if (senderID.equals(player.getId()) && receiverID.equals("0")) {
+                    allClientMessages.add(newMessage);
+                    String messageType = GTP.getMessageType(newMessage);
+                    if (messageType.equals(GTP.MESSAGE_TYPE_TURN_INFO_REQUEST)) {
+                        sendTurnInfo();
+                    } else if (messageType.equals(GTP.MESSAGE_TYPE_BOARD_INFO_REQUEST)) {
+                        sendBoardInfo();
+                    } else if (game.isGameOver() == null && game.isTurnOfPlayer(player)) {
+                        validClientMessages.add(newMessage);
+                        newValidMessage = true;
+                    } else {
+                        sendRejectMoveMessage(GTP.MESSAGE_IS_TURN, GTP.NO);
+                    }
+                    lastMessageIndex++;
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -77,7 +81,8 @@ public class MessageHandler implements Runnable {
 
     public void sendRejectMoveMessage(String reason, String desc) throws IOException {
         gtp.clearMessage();
-        gtp.addMessage(GTP.MESSAGE_ID, "0");
+        gtp.addMessage(GTP.SENDER_ID, "0");
+        gtp.addMessage(GTP.RECEIVER_ID, player.getId());
         gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_PLAYER_MOVE_RESPONSE);
         gtp.addMessage(GTP.MESSAGE_IS_VALID_PLAY, GTP.NO);
         gtp.addMessage(reason, desc);
@@ -86,7 +91,8 @@ public class MessageHandler implements Runnable {
 
     public void sendTurnInfo() throws IOException {
         gtp.clearMessage();
-        gtp.addMessage(GTP.MESSAGE_ID, "0");
+        gtp.addMessage(GTP.SENDER_ID, "0");
+        gtp.addMessage(GTP.RECEIVER_ID, player.getId());
         gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_TURN_INFO_REQUEST);
         gtp.addMessage(GTP.MESSAGE_TURN_INFO, game.whoTurn().getName());
         gtp.sendMessage();
@@ -94,7 +100,8 @@ public class MessageHandler implements Runnable {
 
     public void sendBoardInfo() throws IOException {
         gtp.clearMessage();
-        gtp.addMessage(GTP.MESSAGE_ID, "0");
+        gtp.addMessage(GTP.SENDER_ID, "0");
+        gtp.addMessage(GTP.RECEIVER_ID, player.getId());
         gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_BOARD_INFO_REQUEST);
         gtp.addMessage(GTP.MESSAGE_BOARD, game.toString());
         gtp.sendMessage();
