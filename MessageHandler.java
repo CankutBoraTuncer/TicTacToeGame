@@ -36,11 +36,11 @@ public class MessageHandler implements Runnable {
                     sendTurnInfo();
                 } else if (messageType.equals(GTP.MESSAGE_TYPE_BOARD_INFO_REQUEST)) {
                     sendBoardInfo();
-                } else if (!game.isGameOver() && game.isTurnOfPlayer(player)) {
+                } else if (game.isGameOver() == null && game.isTurnOfPlayer(player)) {
                     validClientMessages.add(newMessage);
                     newValidMessage = true;
                 } else {
-                    sendRejectMoveMessage();
+                    sendRejectMoveMessage(GTP.MESSAGE_IS_TURN, GTP.NO);
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -75,10 +75,12 @@ public class MessageHandler implements Runnable {
         return newValidMessage;
     }
 
-    public void sendRejectMoveMessage() throws IOException {
+    public void sendRejectMoveMessage(String reason, String desc) throws IOException {
         gtp.clearMessage();
-        gtp.addMessage(GTP.MESSAGE_TYPE, "moveReject");
-        gtp.addMessage(GTP.MESSAGE_IS_VALID_PLAY, "false");
+        gtp.addMessage(GTP.MESSAGE_ID, "0");
+        gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_PLAYER_MOVE_RESPONSE);
+        gtp.addMessage(GTP.MESSAGE_IS_VALID_PLAY, GTP.NO);
+        gtp.addMessage(reason, desc);
         gtp.sendMessage();
     }
 

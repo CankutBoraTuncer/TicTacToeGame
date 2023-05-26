@@ -45,11 +45,12 @@ public class ClientHandler implements Runnable {
                                 game.updateBoard(playerMove, player);
                                 sendAcceptMoveMessage();
                                 game.nextTurn();
-                                if (!game.isGameOver()) {
+                                String winner = game.isGameOver();
+                                if (winner == null) {
                                     sendTurnInfoToAll();
                                 } else {
                                     System.out.println("Game Over");
-                                    sendGameWinnerToAll();
+                                    sendGameWinnerToAll(winner);
                                     return;
                                 }
                             } else {
@@ -109,13 +110,13 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void sendGameWinnerToAll() {
+    public void sendGameWinnerToAll(String winner) {
         for (Socket socket : sockets) {
             try {
                     gtp.clearMessage();
                     gtp.addMessage(GTP.MESSAGE_ID, "0");
                     gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_GAME_STATUS);
-                    gtp.addMessage(GTP.MESSAGE_GAME_STATUS, game.winner.getName());
+                    gtp.addMessage(GTP.MESSAGE_GAME_STATUS, winner);
                     gtp.sendMessage(socket);
             } catch (IOException e) {
                 closeEverything();

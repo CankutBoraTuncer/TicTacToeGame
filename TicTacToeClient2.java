@@ -1,23 +1,23 @@
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Scanner;
 
-public class Client1 {
+public class TicTacToeClient2 {
     private Socket clientSocket;
     private Player player;
     private GTP gtp;
     boolean isTurn;
 
     public static void main(String[] args) throws IOException {
-        Socket clientSocket = new Socket("localhost", 1235);
+        int PORT = Integer.parseInt(args[0]);
+        Socket clientSocket = new Socket("localhost", PORT);
         System.out.println("Connected to the server.");
-        Client1 client1 = new Client1(clientSocket);
-        client1.listenServer();
-        client1.sendMessage();
+        TicTacToeClient2 ticTacToeClient2 = new TicTacToeClient2(clientSocket);
+        ticTacToeClient2.listenServer();
+        ticTacToeClient2.sendMessage();
     }
 
-    public Client1(Socket clientSocket) {
+    public TicTacToeClient2(Socket clientSocket) {
         this.clientSocket = clientSocket;
         this.gtp = new GTP(clientSocket);
         this.player = null;
@@ -66,7 +66,9 @@ public class Client1 {
                             boolean isValidPlay = Boolean.parseBoolean(GTP.getMessageResponse(GTP.MESSAGE_IS_VALID_PLAY, serverMessage));
                             if (!isValidPlay) {
                                 System.out.println("Server says: \"This is an illegal move. Please change your move!\"");
-                                System.out.printf("Put %c to: ", player.getSymbol());
+                                if(isTurn){
+                                    System.out.printf("Put %c to: ", player.getSymbol());
+                                }
                             }
                         } else if (messageType.equals(GTP.MESSAGE_TYPE_TURN_INFO_REQUEST)) {
                             printTurnInfo(serverMessage);
@@ -78,7 +80,12 @@ public class Client1 {
 
                         } else if (messageType.equals(GTP.MESSAGE_TYPE_GAME_STATUS)) {
                             String winner = GTP.getMessageResponse(GTP.MESSAGE_GAME_STATUS, serverMessage);
-                            System.out.println("The winner is " + winner);
+                            if(winner.equals("tie")){
+                                System.out.println("The game is ended with a tie");
+                            } else {
+                                System.out.println("The winner is " + winner);
+                            }
+
                             return;
                         }
                     } catch (IOException e) {

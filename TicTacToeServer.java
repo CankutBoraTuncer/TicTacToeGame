@@ -1,14 +1,14 @@
 import java.net.*;
 import java.io.*;
 
-public class GameMaster {
+public class TicTacToeServer {
 
     public static final int MAX_PLAYER_COUNT = 2;
     private final ServerSocket serverSocket;
     private int playerCount;
     private Game game;
 
-    public GameMaster(ServerSocket serverSocket) {
+    public TicTacToeServer(ServerSocket serverSocket) {
         this.playerCount = 0;
         this.serverSocket = serverSocket;
         this.game = new Game();
@@ -52,9 +52,10 @@ public class GameMaster {
     }
 
     public static void main(String[] args) throws IOException {
-        ServerSocket serverSocket = new ServerSocket(1235);
-        GameMaster gameMaster = new GameMaster(serverSocket);
-        gameMaster.initServer();
+        int PORT = Integer.parseInt(args[0]);
+        ServerSocket serverSocket = new ServerSocket(PORT);
+        TicTacToeServer ticTacToeServer = new TicTacToeServer(serverSocket);
+        ticTacToeServer.initServer();
     }
 }
 

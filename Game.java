@@ -89,7 +89,7 @@ public class Game {
         return boardStrNew;
     }
 
-    public boolean isGameOver() {
+    public String isGameOver() {
         for (int i = 0; i < 3; i++) {
             if (board[i][0] != '_' && board[i][0] == board[i][1] && board[i][1] == board[i][2]) {
                 if (players[0].getSymbol() == board[i][0]) {
@@ -97,7 +97,7 @@ public class Game {
                 } else {
                     winner = players[1];
                 }
-                return true;
+                return winner.getName();
             }
         }
         for (int j = 0; j < 3; j++) {
@@ -107,7 +107,7 @@ public class Game {
                 } else {
                     winner = players[1];
                 }
-                return true;
+                return winner.getName();
             }
         }
         if (board[0][0] != '_' && board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
@@ -116,7 +116,7 @@ public class Game {
             } else {
                 winner = players[1];
             }
-            return true;
+            return winner.getName();
         }
         if (board[0][2] != '_' && board[0][2] == board[1][1] && board[1][1] == board[2][0]) {
             if (players[0].getSymbol() == board[0][2]) {
@@ -124,16 +124,16 @@ public class Game {
             } else {
                 winner = players[1];
             }
-            return true;
+            return winner.getName();
         }
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 if (board[i][j] == '_') {
-                    return false;
+                    return null;
                 }
             }
         }
-        return false;
+        return "tie";
     }
 
     @Override

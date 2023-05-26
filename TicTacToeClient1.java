@@ -1,23 +1,23 @@
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Scanner;
 
-public class Client2 {
+public class TicTacToeClient1 {
     private Socket clientSocket;
     private Player player;
     private GTP gtp;
     boolean isTurn;
 
     public static void main(String[] args) throws IOException {
-        Socket clientSocket = new Socket("localhost", 1235);
+        int PORT = Integer.parseInt(args[0]);
+        Socket clientSocket = new Socket("localhost", PORT);
         System.out.println("Connected to the server.");
-        Client2 client2 = new Client2(clientSocket);
-        client2.listenServer();
-        client2.sendMessage();
+        TicTacToeClient1 ticTacToeClient1 = new TicTacToeClient1(clientSocket);
+        ticTacToeClient1.listenServer();
+        ticTacToeClient1.sendMessage();
     }
 
-    public Client2(Socket clientSocket) {
+    public TicTacToeClient1(Socket clientSocket) {
         this.clientSocket = clientSocket;
         this.gtp = new GTP(clientSocket);
         this.player = null;
@@ -34,7 +34,8 @@ public class Client2 {
                     sendBoardInfoRequest();
                 } else if (play.equals("turnInfo")) {
                     sendTurnInfoRequest();
-                } else {
+                }
+                else {
                     sendPlayerMove(play);
                 }
 
@@ -66,7 +67,9 @@ public class Client2 {
                             boolean isValidPlay = Boolean.parseBoolean(GTP.getMessageResponse(GTP.MESSAGE_IS_VALID_PLAY, serverMessage));
                             if (!isValidPlay) {
                                 System.out.println("Server says: \"This is an illegal move. Please change your move!\"");
-                                System.out.printf("Put %c to: ", player.getSymbol());
+                                if(isTurn){
+                                    System.out.printf("Put %c to: ", player.getSymbol());
+                                }
                             }
                         } else if (messageType.equals(GTP.MESSAGE_TYPE_TURN_INFO_REQUEST)) {
                             printTurnInfo(serverMessage);
@@ -78,7 +81,12 @@ public class Client2 {
 
                         } else if (messageType.equals(GTP.MESSAGE_TYPE_GAME_STATUS)) {
                             String winner = GTP.getMessageResponse(GTP.MESSAGE_GAME_STATUS, serverMessage);
-                            System.out.println("The winner is " + winner);
+                            if(winner.equals("tie")){
+                                System.out.println("The game is ended with a tie");
+                            } else {
+                                System.out.println("The winner is " + winner);
+                            }
+
                             return;
                         }
                     } catch (IOException e) {
