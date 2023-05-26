@@ -20,12 +20,12 @@ public class GameMaster {
                 if (playerCount < MAX_PLAYER_COUNT) {
                     System.out.println("Server is initialized");
                     Socket clientSocket1 = serverSocket.accept();
-                    PlayerServer player1 = new PlayerServer(clientSocket1, 'X', "player1");
+                    Player player1 = new Player(clientSocket1, 'X', "player1");
                     ClientHandler clientHandler1 = new ClientHandler(clientSocket1, player1, game);
                     System.out.printf("A client is connected, and it is assigned with the symbol %c and ID=%s\n", player1.getSymbol(), player1.getId());
                     playerCount++;
                     Socket clientSocket2 = serverSocket.accept();
-                    PlayerServer player2 = new PlayerServer(clientSocket2, '0', "player2");
+                    Player player2 = new Player(clientSocket2, '0', "player2");
                     ClientHandler clientHandler2 = new ClientHandler(clientSocket2, player2, game);
                     playerCount++;
                     System.out.printf("A client is connected, and it is assigned with the symbol %c and ID=%s\n", player2.getSymbol(), player2.getId());

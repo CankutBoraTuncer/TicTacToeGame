@@ -7,14 +7,14 @@ public class MessageHandler implements Runnable{
     private GTP gtp;
     private Socket socket;
     private Game game;
-    private PlayerServer player;
+    private Player player;
     private ArrayList<String> allClientMessages;
     private ArrayList<String> validClientMessages;
     private int lastMessageIndex = -1;
     private volatile boolean newValidMessage;
 
 
-    public MessageHandler(GTP gtp, Socket socket, Game game, PlayerServer player){
+    public MessageHandler(GTP gtp, Socket socket, Game game, Player player){
         this.gtp = gtp;
         this.socket = socket;
         this.game = game;

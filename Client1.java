@@ -5,7 +5,7 @@ import java.util.Scanner;
 
 public class Client1 {
     private Socket clientSocket;
-    private PlayerClient player;
+    private Player player;
     private GTP gtp;
 
     public static void main(String[] args) throws IOException {
@@ -48,7 +48,7 @@ public class Client1 {
                             String id = GTP.getMessageResponse(GTP.MESSAGE_PLAYER_ID, serverMessage);
                             char symbol = GTP.getMessageResponse(GTP.MESSAGE_SYMBOL, serverMessage).charAt(0);
                             String name = GTP.getMessageResponse(GTP.MESSAGE_NAME, serverMessage);
-                            player = new PlayerClient(id, symbol, name);
+                            player = new Player(id, symbol, name);
                             System.out.printf("Retrieved symbol %c and ID=%s\n", symbol, id);
                         } else if(messageType.equals(GTP.MESSAGE_TYPE_TURN_INFO)){
                             String playerName = GTP.getMessageResponse(GTP.MESSAGE_TURN_INFO, serverMessage);
@@ -66,6 +66,7 @@ public class Client1 {
                             boolean isValidPlay = Boolean.parseBoolean(GTP.getMessageResponse(GTP.MESSAGE_IS_VALID_PLAY, serverMessage));
                             if(!isValidPlay){
                                 System.out.println("Server says: \"This is an illegal move. Please change your move!\"");
+                                System.out.printf("Put %c to: ", player.getSymbol());
                             }
                         } else if(messageType.equals(GTP.MESSAGE_TYPE_GAME_STATUS)){
                             String winner = GTP.getMessageResponse(GTP.MESSAGE_GAME_STATUS, serverMessage);

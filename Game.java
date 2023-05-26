@@ -78,7 +78,7 @@ public class Game {
         boardStr = boardToString(board);
     }
 
-    private static String boardToString(char[][] board){
+    private static String boardToString(char[][] board) {
         String boardStrNew = "\n";
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
@@ -90,7 +90,6 @@ public class Game {
     }
 
     public boolean isGameOver() {
-        // Check rows
         for (int i = 0; i < 3; i++) {
             if (board[i][0] != '_' && board[i][0] == board[i][1] && board[i][1] == board[i][2]) {
                 if (players[0].getSymbol() == board[i][0]) {
@@ -101,7 +100,6 @@ public class Game {
                 return true;
             }
         }
-        // Check columns
         for (int j = 0; j < 3; j++) {
             if (board[0][j] != '_' && board[0][j] == board[1][j] && board[1][j] == board[2][j]) {
                 if (players[0].getSymbol() == board[0][j]) {
@@ -112,7 +110,6 @@ public class Game {
                 return true;
             }
         }
-        // Check diagonals
         if (board[0][0] != '_' && board[0][0] == board[1][1] && board[1][1] == board[2][2]) {
             if (players[0].getSymbol() == board[0][0]) {
                 winner = players[0];
@@ -129,8 +126,6 @@ public class Game {
             }
             return true;
         }
-
-        // Check if all cells are filled
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 if (board[i][j] == '_') {
@@ -138,7 +133,6 @@ public class Game {
                 }
             }
         }
-        // If none of the above conditions are true, the game is not over
         return false;
     }
 

@@ -6,13 +6,13 @@ public class ClientHandler implements Runnable {
 
     public static ArrayList<Socket> sockets = new ArrayList<>();
     private Socket clientSocket;
-    private PlayerServer player;
+    private Player player;
     private GTP gtp;
     private Game game;
     private MessageHandler messageHandler;
 
 
-    public ClientHandler(Socket clientSocket, PlayerServer player, Game game) throws IOException {
+    public ClientHandler(Socket clientSocket, Player player, Game game) throws IOException {
         this.clientSocket = clientSocket;
         this.game = game;
         this.gtp = new GTP(clientSocket);
@@ -98,7 +98,6 @@ public class ClientHandler implements Runnable {
         for (Socket socket : sockets) {
             try {
                 gtp.clearMessage();
-                System.out.println(player.getName());
                 gtp.addMessage(GTP.MESSAGE_ID, "0");
                 gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_TURN_INFO);
                 gtp.addMessage(GTP.MESSAGE_TURN_INFO, game.whoTurn().getName());
