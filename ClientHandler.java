@@ -33,7 +33,7 @@ public class ClientHandler implements Runnable {
             try {
                 if (game.getCurrentPlayerCount() == 2) {
                     sendPlayerData();
-                        sendTurnInfoToAll();
+                    sendTurnInfoToAll();
                 }
                 while (true) {
                     if (game.isTurnOfPlayer(player)) {
@@ -51,7 +51,11 @@ public class ClientHandler implements Runnable {
                                 if (winner == null) {
                                     sendTurnInfoToAll();
                                 } else {
-                                    System.out.println("Game Over");
+                                    if (winner.equals("tie")) {
+                                        System.out.println("Game ends with a tie");
+                                    } else {
+                                        System.out.println("The winner is " + winner);
+                                    }
                                     sendGameWinnerToAll(winner);
                                     return;
                                 }
@@ -117,14 +121,14 @@ public class ClientHandler implements Runnable {
     }
 
     public void sendGameWinnerToAll(String winner) {
-        for (Socket socket : sockets) {
+        for (int i = 0; i < sockets.size(); i++) {
             try {
                 gtp.clearMessage();
                 gtp.addMessage(GTP.SENDER_ID, "0");
-                gtp.addMessage(GTP.RECEIVER_ID, player.getId());
+                gtp.addMessage(GTP.RECEIVER_ID, players.get(i).getId());
                 gtp.addMessage(GTP.MESSAGE_TYPE, GTP.MESSAGE_TYPE_GAME_STATUS);
                 gtp.addMessage(GTP.MESSAGE_GAME_STATUS, winner);
-                gtp.sendMessage(socket);
+                gtp.sendMessage(sockets.get(i));
             } catch (IOException e) {
                 closeEverything();
             }

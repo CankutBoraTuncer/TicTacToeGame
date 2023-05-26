@@ -10,7 +10,7 @@ public class TicTacToeClient2 {
     boolean isFirstMessage;
 
     public static void main(String[] args) throws IOException {
-        int PORT = 1235;//Integer.parseInt(args[0]);
+        int PORT = Integer.parseInt(args[0]);
         Socket clientSocket = new Socket("localhost", PORT);
         System.out.println("Connected to the server.");
         TicTacToeClient2 ticTacToeClient2 = new TicTacToeClient2(clientSocket);
